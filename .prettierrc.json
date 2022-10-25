@@ -1,0 +1,14 @@
+{
+    "tabWidth": 4,
+    "useTabs": false,
+    "semi": true,
+    "trailingComma": "es5",
+    "overrides": [
+        {
+            "files": [".github/workflows/*.yml"],
+            "options": {
+                "tabWidth": 2
+            }
+        }
+    ]
+}
