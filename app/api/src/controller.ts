@@ -45,6 +45,7 @@ export const authorize = async (
         });
         authUrl.searchParams.append("state", state);
 
+        console.log(authUrl.toString())
         res.redirect(authUrl.toString());
         return;
     } catch (err) {
