@@ -1,6 +1,6 @@
 import * as apiTypes from "../constants/ApiConstants";
 import axios from "axios";
-import { AuthRequestBody, RequestSyncBody, RequestWithAccountId } from "types";
+import { AuthRequestBody, RequestSetupBody, RequestSyncBody, requestWithAccountId, RequestWithAccountId, UpdateDateExtensionBody } from "types";
 
 
 const client = axios.create({
@@ -38,10 +38,12 @@ export async function getUserInfo(): Promise<object> {
 
     return Promise.resolve(data);
 }
-export async function checkDataExtension() {
+
+
+export async function checKSyncsDataExtension() {
     let isFound = false;
     try {
-        const resp = await client.get(apiTypes.CHECK_DE_EXTENSION);
+        const resp = await client.get(apiTypes.CHECK_SYNCS_DE_EXTENSION);
         if (resp) {
             if (resp.status === 200) {
                 isFound = true;
@@ -60,10 +62,10 @@ export async function checkDataExtension() {
     return isFound;
 }
 
-//Calling the get DE data server call
-export async function getDataExtensionData() {
+//Calling the get Syncs data 
+export async function getSyncsDataExtensionData() {
     try {
-        const resp = await client.get(apiTypes.GET_DE_EXTENSION);
+        const resp = await client.get(apiTypes.GET_SYNCS_DE_EXTENSION);
 
         if (resp) {
             return resp;
@@ -77,9 +79,9 @@ export async function getDataExtensionData() {
 
 }
 //Calling create DE server call
-export async function createDataExtension(request: RequestWithAccountId): Promise<boolean> {
+export async function createSyncsDataExtension(request: RequestWithAccountId): Promise<boolean> {
     try {
-        const resp = await client.post(apiTypes.CREATE_DE_EXTENSION, request);
+        const resp = await client.post(apiTypes.CREATE_SYNCS_DE_EXTENSION, request);
         if (resp) {
             return true;
         }
@@ -93,9 +95,9 @@ export async function createDataExtension(request: RequestWithAccountId): Promis
 }
 
 //Calling insert and upsert data on DE server call
-export async function upsertDataExtension(request: RequestSyncBody[]): Promise<boolean> {
+export async function upsertSyncsDataExtension(request: RequestSyncBody[]): Promise<boolean> {
     try {
-        const resp = await client.post(apiTypes.UPSERT_DE_EXTENSION, request);
+        const resp = await client.post(apiTypes.UPSERT_SYNCS_DE_EXTENSION, request);
         if (resp) {
             return true;
         }
@@ -179,4 +181,63 @@ async function getHightouchSyncs() {
 
     }
 
+}
+
+//Method for checking the Setup Data Extenion availability
+export async function checkSetupDataExtension() {
+    let isFound = false;
+    try {
+        const resp = await axios.get(apiTypes.CHECK_SETUP_DE_EXTENSION);
+        if (resp) {
+            if (resp.status === 200) {
+                isFound = true;
+            } else isFound = false;
+        }
+    } catch (error) {
+        console.log(error);
+        return isFound;
+    }
+
+    return isFound;
+}
+
+//Method for getting Setup Data Extension
+export async function getSetupDataExtensionData() {
+    try {
+        const resp = await axios.get(apiTypes.GET_SETUP_DE_EXTENSION);
+
+        if (resp) {
+            return resp;
+        }
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+//Method for creating the Setup Data Extension
+export async function createSetupDataExtension(
+    request: requestWithAccountId
+): Promise<boolean> {
+    try {
+        const resp = await axios.post(apiTypes.CREATE_SETUP_DE_EXTENSION, request);
+        if (resp) {
+            return true;
+        }
+    } catch (error) {
+        console.log(error);
+        return Promise.resolve(false);
+    }
+    return true;
+}
+
+//Method for updating the Setup Data Extension
+export async function updateSetupDataExtensionData(
+    updateReq: RequestSetupBody[]
+) {
+    try {
+        const resp = await axios.post(apiTypes.UPSERT_SETUP_DE_EXTENSION, updateReq);
+        return resp;
+    } catch (error) {
+        console.log(error);
+    }
 }

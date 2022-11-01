@@ -1,4 +1,4 @@
-import { getAppConfig, getDEConfig } from "./config";
+import { getAppConfig, getSyncDEConfig, getSetupDEConfig } from "./config";
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import axios from "axios";
@@ -11,12 +11,14 @@ import {
     ONE_HOUR_IN_SECONDS,
     TWENTY_MINS_IN_SECONDS,
 } from "./cookies";
-import { getCheckDEPayload, getCreateDEPayload, getDEDataPayload } from "./soapMethodCalls";
+import { getCheckDEPayload, getCreateDESetupPayload, getCreateSyncsDEPayload, getDEDataSetupPayload, getSyncsDEDataPayload } from "./soapMethodCalls";
 
 //xml to json
 var parser = new xml2js.Parser();
 const appConfig = getAppConfig();
-const deConfig = getDEConfig();
+const syncsConfig = getSyncDEConfig();
+const setupConfig = getSetupDEConfig();
+
 const sfmcOAuthCallbackPath = "/oauth2/sfmc/callback";
 
 export const healthCheck = (_req: Request, res: Response) => {
@@ -45,7 +47,6 @@ export const authorize = async (
         });
         authUrl.searchParams.append("state", state);
 
-        console.log(authUrl.toString())
         res.redirect(authUrl.toString());
         return;
     } catch (err) {
@@ -138,6 +139,10 @@ export const oAuthCallback = async (
     res.redirect("/");
 };
 
+
+/*
+Method for verifying the S2S call
+*/
 export const verifYServer2ServerOAuth = async (req: Request, res: Response) => {
     //Reading the tssd from the cookie.
     const tssd =
@@ -158,6 +163,10 @@ export const verifYServer2ServerOAuth = async (req: Request, res: Response) => {
     }
 };
 
+
+/*
+ Method for getting user details for logged in user
+*/
 export const getUserInfo = async (req: Request, res: Response) => {
     try {
         const tssd = req.signedCookies["sfmc_tssd"];
@@ -186,6 +195,10 @@ export const getUserInfo = async (req: Request, res: Response) => {
         return res.send(error);
     }
 };
+
+/*
+ refresh token using the clientid and secret key
+*/
 export const refreshToken = async (
     req: Request,
     res: Response,
@@ -237,6 +250,10 @@ export const refreshToken = async (
     }
 };
 
+/* 
+
+posting the clientid and secret key to hightouch api
+*/
 export const connectToHightouch = async (req: Request, res: Response) => {
     try {
         const payLoad: Connect = {
@@ -268,7 +285,7 @@ export const connectToHightouch = async (req: Request, res: Response) => {
 };
 
 //Creates the data extension
-export const createDataExtensionWithSoap = async (
+export const createSyncsDataExtensionWithSoap = async (
     req: Request,
     res: Response
 ) => {
@@ -277,11 +294,11 @@ export const createDataExtensionWithSoap = async (
         req.signedCookies["sfmc_tssd"] || appConfig.sfmcDefaultTenantSubdomain;
     const accessToken = req.signedCookies["sfmc_access_token"];
     const accountId = req.body.accountId;
-    const deName = deConfig.deName;
-    const deCustomerKey = deConfig.deCustomerKey;
+    const deName = syncsConfig.deName;
+    const deCustomerKey = syncsConfig.deCustomerKey;
 
     try {
-        var data = getCreateDEPayload(accessToken, accountId, deCustomerKey, deName);
+        var data = getCreateSyncsDEPayload(accessToken, accountId, deCustomerKey, deName);
         const config = {
             method: "post",
             url: `https://${tssd}.soap.marketingcloudapis.com/Service.asmx`,
@@ -310,12 +327,12 @@ export const createDataExtensionWithSoap = async (
 };
 
 //Checks whether DE is available or not
-export const checkDataExtensionWithSoap = async (req: any, res: any) => {
+export const checkSyncsDataExtensionWithSoap = async (req: any, res: any) => {
     //Reading the tssd from the cookie.
     const tssd =
         req.signedCookies["sfmc_tssd"] || appConfig.sfmcDefaultTenantSubdomain;
     const accessToken = req.signedCookies["sfmc_access_token"];
-    const deCustomerKey = deConfig.deCustomerKey;
+    const deCustomerKey = syncsConfig.deCustomerKey;
     try {
 
         var data = getCheckDEPayload(tssd, accessToken, deCustomerKey)
@@ -353,12 +370,12 @@ export const checkDataExtensionWithSoap = async (req: any, res: any) => {
     }
 };
 
-//Insert and update the data in DE
-export const upsertDataExtension = async (req: any, res: any) => {
+//Insert and update the Syncs data in DE
+export const upsertSyncsDataExtension = async (req: any, res: any) => {
     const tssd =
         req.signedCookies["sfmc_tssd"] || appConfig.sfmcDefaultTenantSubdomain;
     const accessToken = req.signedCookies["sfmc_access_token"];
-    const deCustomerKey = deConfig.deCustomerKey;
+    const deCustomerKey = syncsConfig.deCustomerKey;
     const payLoad = req.body;
     try {
         var data = payLoad;
@@ -384,16 +401,16 @@ export const upsertDataExtension = async (req: any, res: any) => {
         return res.status(500).send(error);
     }
 };
-// Getting the DE data
-export const getDataExtension = async (req: Request, res: Response) => {
+// Getting the Syncs DE data
+export const getSyncsDataExtension = async (req: Request, res: Response) => {
     //Reading the tssd from the cookie.
     const tssd =
         req.signedCookies["sfmc_tssd"] || appConfig.sfmcDefaultTenantSubdomain;
     const accessToken = req.signedCookies["sfmc_access_token"];
-    const deName = deConfig.deName;
+    const deName = syncsConfig.deName;
 
     try {
-        var data = getDEDataPayload(tssd, accessToken, deName);
+        var data = getSyncsDEDataPayload(tssd, accessToken, deName);
 
 
         var config = {
@@ -475,6 +492,173 @@ export const getHightouchSyncs = async (_req: Request, resp: Response) => {
         return resp.status(500).send(error);
     }
 };
+
+
+export const createSetupDataExtensionWithSoap = async (
+    req: Request,
+    res: Response
+) => {
+    //Reading the tssd from the cookie.
+    const tssd =
+        req.signedCookies["sfmc_tssd"] || appConfig.sfmcDefaultTenantSubdomain;
+    const accessToken = req.signedCookies["sfmc_access_token"];
+    const accountId = req.body.accountId;
+    const deName = setupConfig.deName;
+    const deCustomerKey = setupConfig.deCustomerKey;
+
+    try {
+        const data = getCreateDESetupPayload(
+            accessToken,
+            accountId,
+            deCustomerKey,
+            deName
+        );
+        const config = {
+            method: "post",
+            url: `https://${tssd}.soap.marketingcloudapis.com/Service.asmx`,
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "Content-Type": "text/xml",
+            },
+            data: data,
+        };
+
+        const response = await axios(config);
+        //Parsing the response soap xml
+        const result = await parser.parseStringPromise(response.data);
+        var soapBody = result["soap:Envelope"]["soap:Body"];
+        const RetrieveResponseMsg =
+            soapBody[0].CreateResponse[0].Results[0].StatusCode;
+        if (RetrieveResponseMsg[0] === "OK") {
+            return res.status(200).send("Ok");
+        } else {
+            return res.sendStatus(500);
+        }
+    } catch (error) {
+        console.log(error);
+        return res.sendStatus(500);
+    }
+};
+
+export const checkSetupDataExtensionWithSoap = async (req: any, res: any) => {
+    //Reading the tssd from the cookie.
+    const tssd =
+        req.signedCookies["sfmc_tssd"] || appConfig.sfmcDefaultTenantSubdomain;
+    const accessToken = req.signedCookies["sfmc_access_token"];
+    const deCustomerKey = setupConfig.deCustomerKey;
+    try {
+        var data = getCheckDEPayload(tssd, accessToken, deCustomerKey);
+        var config = {
+            method: "post",
+            url: `https://${tssd}.soap.marketingcloudapis.com/Service.asmx`,
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "Content-Type": "text/xml",
+            },
+            data: data,
+        };
+
+        const resp = await axios(config);
+        //Parsing the response soap xml
+        const result = await parser.parseStringPromise(resp.data);
+        var soapBody = result["soap:Envelope"]["soap:Body"];
+        const RetrieveResponseMsg = soapBody[0].RetrieveResponseMsg[0];
+
+        if (RetrieveResponseMsg.OverallStatus[0] === "OK") {
+            try {
+                if (RetrieveResponseMsg.Results) {
+                    const Results = RetrieveResponseMsg.Results[0].Properties;
+                    // Results should always be an array
+                    return res.status(200).send(Results);
+                }
+            } catch (error) {
+                console.log(error);
+            }
+            return res.sendStatus(204);
+        } else {
+            return res.sendStatus(204);
+        }
+    } catch (error) {
+        return res.sendStatus(500);
+    }
+};
+
+//Insert and update the setup data in DE
+export const upsertSetupDataExtension = async (req: any, res: any) => {
+    const tssd =
+        req.signedCookies["sfmc_tssd"] || appConfig.sfmcDefaultTenantSubdomain;
+    const accessToken = req.signedCookies["sfmc_access_token"];
+    const deCustomerKey = setupConfig.deCustomerKey;
+    const payLoad = req.body;
+    try {
+        var data = payLoad;
+
+        var config = {
+            method: "post",
+            url: `https://${tssd}.rest.marketingcloudapis.com/hub/v1/dataevents/key:${deCustomerKey}/rowset`,
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "Content-Type": "application/json",
+            },
+            data: data,
+        };
+
+        const resp = await axios(config);
+        if (resp.status === 200) {
+            return res.status(200).send("Ok");
+        } else {
+            return res.status(500).send("Error");
+        }
+    } catch (error) {
+        console.log("error", error);
+        return res.status(500).send(error);
+    }
+};
+
+
+export const getSetupDataExtension = async (req: Request, res: Response) => {
+    //Reading the tssd from the cookie.
+    const tssd =
+        req.signedCookies["sfmc_tssd"] || appConfig.sfmcDefaultTenantSubdomain;
+    const accessToken = req.signedCookies["sfmc_access_token"];
+    const deName = setupConfig.deName;
+
+    try {
+        var data = getDEDataSetupPayload(tssd, accessToken, deName);
+
+        var config = {
+            method: "post",
+            url: `https://${tssd}.soap.marketingcloudapis.com/Service.asmx`,
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "Content-Type": "text/xml",
+            },
+            data: data,
+        };
+        const resp = await axios(config);
+        const result = await parser.parseStringPromise(resp.data);
+        var soapBody = result["soap:Envelope"]["soap:Body"];
+        const RetrieveResponseMsg = soapBody[0].RetrieveResponseMsg[0];
+        if (RetrieveResponseMsg.OverallStatus[0] === "OK") {
+            try {
+                if (RetrieveResponseMsg.Results) {
+                    const Results = RetrieveResponseMsg.Results[0].Properties;
+                    // Results should always be an array
+                    return res.status(200).send(Results);
+                }
+            } catch (error) {
+                console.log(error);
+            }
+            return res.status(200).send("Ok");
+        } else {
+            return res.sendStatus(500);
+        }
+    } catch (error) {
+        console.log("error", error);
+        return res.status(500).send(error);
+    }
+};
+
 export const onError = (req: Request, _res: Response, next: NextFunction) => {
     console.error(
         "Redirected to /oauth2/error while handling:",

@@ -9,10 +9,14 @@ import {
     connectToHightouch,
     getHightouchSyncs,
     getHightouchDestinations,
-    checkDataExtensionWithSoap,
-    getDataExtension,
-    upsertDataExtension,
-    createDataExtensionWithSoap,
+    checkSyncsDataExtensionWithSoap,
+    getSyncsDataExtension,
+    upsertSyncsDataExtension,
+    createSyncsDataExtensionWithSoap,
+    checkSetupDataExtensionWithSoap,
+    createSetupDataExtensionWithSoap,
+    getSetupDataExtension,
+    upsertSetupDataExtension,
 } from "./controller";
 import express from "express";
 
@@ -25,11 +29,15 @@ export default (app: any) => {
     router.post("/oauth2/sfmc/refresh_token", refreshToken);
     router.post("/api/sfmc/verifys2s", verifYServer2ServerOAuth);
     router.get("/api/sfmc/getuserinfo", getUserInfo);
-    router.get("/api/sfmc/checkDataExtension", checkDataExtensionWithSoap);
-    router.get("/api/sfmc/getDataExtension", getDataExtension);
+    router.get("/api/sfmc/checkSyncsDataExtension", checkSyncsDataExtensionWithSoap);
+    router.get("/api/sfmc/getSyncsDataExtension", getSyncsDataExtension);
+    router.post("/api/sfmc/createSyncsDataExtension", createSyncsDataExtensionWithSoap);
+    router.post("/api/sfmc/upsertSyncsDataExtension", upsertSyncsDataExtension);
+    router.get("/api/sfmc/checkSetupDataExtension", checkSetupDataExtensionWithSoap);
+    router.get("/api/sfmc/getSetupDataExtension", getSetupDataExtension);
+    router.post("/api/sfmc/createSetupDataExtension", createSetupDataExtensionWithSoap);
     router.post("/api/connect-hightouch", connectToHightouch);
-    router.post("/api/sfmc/createDataExtension", createDataExtensionWithSoap);
-    router.post("/api/hightouch/updateDataExtension", upsertDataExtension);
+    router.post("/api/sfmc/updateSetupDataExtension", upsertSetupDataExtension);
     router.get("/api/hightouch/destinations", getHightouchDestinations);
     router.get("/api/hightouch/syncs", getHightouchSyncs);
     router.get("/api/oauth2/error", onError);

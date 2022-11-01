@@ -1,4 +1,6 @@
-export const getCreateDEPayload = (
+
+
+export const getCreateSyncsDEPayload = (
     accessToken: string,
     accountId: string,
     deCustomerKey: string,
@@ -85,7 +87,7 @@ export const getCheckDEPayload = (
     return data;
 };
 
-export const getDEDataPayload = (
+export const getSyncsDEDataPayload = (
     tssd: string,
     accessToken: string,
     deName: string
@@ -169,3 +171,115 @@ export const getDEUpdatePayload = (
 
     return data;
 };
+
+
+/*
+The below is methods are for related to Hightouch Setup DE
+*/
+
+export const getCreateDESetupPayload = (
+    accessToken: string,
+    accountId: string,
+    deCustomerKey: string,
+    deName: string
+) => {
+    const data = `<?xml version="1.0" encoding="UTF-8"?>
+    <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope"  xmlns:a="http://schemas.xmlsoap.org/ws/2004/08/addressing"  xmlns:u="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+        <s:Header>
+            <a:Action s:mustUnderstand="1">Create</a:Action>\r\n<a:To s:mustUnderstand="1">https://mcftllc2rwg-b3-r6878b77j8gv4.soap.marketingcloudapis.com/Service.asmx</a:To>
+            <fueloauth xmlns="http://exacttarget.com">${accessToken}</fueloauth>
+        </s:Header>
+        <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+            <CreateRequest xmlns="http://exacttarget.com/wsdl/partnerAPI">
+                <Objects xsi:type="DataExtension">
+                    <Client>
+                        <ID>${accountId}</ID>
+                    </Client>
+                    <CustomerKey>${deCustomerKey}</CustomerKey>
+                    <Name>${deName}</Name>
+                    <Fields>   
+                        <Field>
+                            <CustomerKey>Hightouch PrimaryId</CustomerKey>
+                            <Name>Hightouch PrimaryId</Name>
+                            <FieldType>Text</FieldType>
+                            <MaxLength>500</MaxLength>
+                            <IsRequired>true</IsRequired>
+                            <IsPrimaryKey>true</IsPrimaryKey>
+                        </Field>                   
+                        <Field>
+                            <CustomerKey>S2S Verify</CustomerKey>
+                            <Name>S2S Verify</Name>
+                            <FieldType>Boolean</FieldType>
+                            <DefaultValue>false</DefaultValue>
+                            <IsRequired>true</IsRequired>
+                        </Field>                      
+                        <Field>
+                            <CustomerKey>Config Complete</CustomerKey>
+                            <Name>Config Complete</Name>
+                            <FieldType>Boolean</FieldType>
+                            <DefaultValue>false</DefaultValue>
+                            <IsRequired>true</IsRequired>
+                        </Field>
+                    </Fields>
+                 </Objects>
+            </CreateRequest>
+        </s:Body>
+    </s:Envelope>`;
+    return data;
+};
+
+export const getCheckDESetupPayload = (
+    tssd: string,
+    accessToken: string,
+    deCustomerKey: string
+) => {
+    var data = `<?xml version="1.0" encoding="UTF-8"?
+        <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:u="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+            <s:Header>
+                <a:Action s:mustUnderstand="1">Retrieve</a:Action>
+                <a:To s:mustUnderstand="1">https://${tssd}.soap.marketingcloudapis.com/Service.asmx</a:To>
+                <fueloauth xmlns="http://exacttarget.com">${accessToken}</fueloauth>
+            </s:Header>
+            <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+                <RetrieveRequestMsg xmlns="http://exacttarget.com/wsdl/partnerAPI">
+                    <RetrieveRequest> 
+                        <ObjectType>DataExtension</ObjectType>  <Properties>ObjectID</Properties>
+                        <Properties>CustomerKey</Properties>  <Properties>Name</Properties>  
+                        <Filter xsi:type="SimpleFilterPart"> 
+                        <Property>CustomerKey</Property> 
+                        <SimpleOperator>equals</SimpleOperator> 
+                        <Value>${deCustomerKey}</Value>
+                        </Filter> 
+                    </RetrieveRequest>
+                </RetrieveRequestMsg> 
+            </s:Body>
+        </s:Envelope>`;
+    return data;
+};
+
+export const getDEDataSetupPayload = (
+    tssd: string,
+    accessToken: string,
+    deName: string
+) => {
+    var data = `<?xml version="1.0" encoding="UTF-8"?>
+    <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:u="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+        <s:Header>
+            <a:Action s:mustUnderstand="1">Retrieve</a:Action>
+            <a:To s:mustUnderstand="1">https://${tssd}.soap.marketingcloudapis.com/Service.asmx</a:To>
+            <fueloauth xmlns="http://exacttarget.com">${accessToken}</fueloauth>
+        </s:Header>
+        <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+            <RetrieveRequestMsg xmlns="http://exacttarget.com/wsdl/partnerAPI">
+                <RetrieveRequest>
+                    <ObjectType>DataExtensionObject[${deName}]</ObjectType>
+                    <Properties>S2S Verify</Properties>
+                    <Properties>Config Complete</Properties>
+                </RetrieveRequest>
+            </RetrieveRequestMsg>
+        </s:Body>
+    </s:Envelope>`;
+
+    return data;
+};
+

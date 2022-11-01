@@ -20,6 +20,8 @@ import App from "./App";
 import { SyncsDashboard } from "./views/dashboard/SyncsDashboard";
 import React from "react";
 import { Journeys } from "./views/dashboard/Journeys";
+import { NavigationProvider } from "./components/NavigationContext";
+import { DashboardRouter } from "./views/dashboard/Index";
 
 // Without the following line, an error will be logged every time a modal is rendered.
 // See https://react.lightningdesignsystem.com/components/modals/.
@@ -34,27 +36,31 @@ window.addEventListener("unhandledrejection", (err) =>
     console.error("CAUGHT unhandledrejection!", err)
 );
 root.render(
-    <IconSettings
-        iconPath="/assets/icons"
-        actionSprite={actionSprite}
-        customSprite={customSprite}
-        doctypeSprite={doctypeSprite}
-        standardSprite={standardSprite}
-        utilitySprite={utilitySprite}
-    >
-        <BrowserRouter>
-            <CookiesProvider>
-                <Routes>
-                    <Route path="*" element={<App />}></Route>
-                    <Route path="/dashboard" element={<SyncsDashboard />}>
-                        <Route
-                            path="syncsdashboard"
-                            element={<SyncsDashboard />}
-                        />
-                        <Route path="journeys" element={<Journeys />} />
-                    </Route>
-                </Routes>
-            </CookiesProvider>
-        </BrowserRouter>
-    </IconSettings>
+    <NavigationProvider>
+        <IconSettings
+            iconPath="/assets/icons"
+            actionSprite={actionSprite}
+            customSprite={customSprite}
+            doctypeSprite={doctypeSprite}
+            standardSprite={standardSprite}
+            utilitySprite={utilitySprite}
+        >
+            <BrowserRouter>
+                <CookiesProvider>
+                    <Routes>
+
+                        <Route path="*" element={<DashboardRouter />}></Route>
+                        <Route path="setup/*" element={<App />}></Route>
+                        <Route path="dashboard" element={<SyncsDashboard />}>
+                            <Route
+                                path="syncsdashboard"
+                                element={<SyncsDashboard />}
+                            />
+                            <Route path="journeys" element={<Journeys />} />
+                        </Route>
+                    </Routes>
+                </CookiesProvider>
+            </BrowserRouter>
+        </IconSettings>
+    </NavigationProvider>
 );

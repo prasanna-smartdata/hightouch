@@ -6,20 +6,23 @@ import {
 import classNames from "classnames";
 import React, { useState } from "react";
 import { useCookies } from "react-cookie";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { HightouchRequestBody } from "types";
-import { connectToHightouch } from "../actions/ApiActions";
+import {
+    connectToHightouch,
+    updateSetupDataExtensionData,
+} from "../actions/ApiActions";
+import { getSetupUpsertRequestBody } from "../actions/Helper";
 import { UtilityIcon } from "../components/icons/UtilityIcon";
 import { withNavigation } from "../components/withNavigation";
 
 function Review(prop: any) {
-    const [cookies, setCookie] = useCookies(["_csrf"]);
     const [isValid, setIsValid] = useState(false);
     const [redirectUri, setRedirectUri] = useState("");
     const loc: any = useLocation();
-    const client = loc.state.client;
-    const secret = loc.state.secret;
+    const client: string = loc.state.client;
+    const secret: string = loc.state.secret;
     const accountId: string = loc.state.accountId;
     const userId: string = loc.state.userId;
     const email: string = loc.state.email;
@@ -28,36 +31,58 @@ function Review(prop: any) {
     const [showSuccess, setShowSuccess] = useState(false);
     const [showError, setShowError] = useState(false);
 
-    const CreateHightouch = () => {
-        const request: HightouchRequestBody = {
-            accountId: accountId,
-            userId: userId,
-            email: email,
-            clientId: client,
-            secretKey: secret,
-        };
-        setShowSpinner(true);
+    const CreateHightouch = async () => {
+        try {
+            const request: HightouchRequestBody = {
+                accountId: accountId,
+                userId: userId,
+                email: email,
+                clientId: client,
+                secretKey: secret,
+            };
+            setShowSpinner(true);
 
-        connectToHightouch(request)
-            .then((response: any) => {
-                if (response.redirect_uri) {
-                    setIsValid(true);
-                    setShowSuccess(true);
-                    setShowSpinner(false);
-                    prop.updateState(true, true, true, true);
-                    setRedirectUri(response.redirect_uri);
-                } else {
+            connectToHightouch(request)
+                .then((response: any) => {
+                    if (response.redirect_uri) {
+                        setIsValid(true);
+                        setShowSuccess(true);
+                        setShowSpinner(false);
+                        prop.updateState(true, true, true, true);
+                        setRedirectUri(response.redirect_uri);
+                    } else {
+                        setShowSpinner(false);
+                        setShowError(true);
+                        setIsValid(false);
+                    }
+                })
+                .catch((error) => {
+                    console.log("connectToHightouch response error", error);
                     setShowSpinner(false);
                     setShowError(true);
                     setIsValid(false);
-                }
-            })
-            .catch((error) => {
-                console.log("connectToHightouch response error", error);
-                setShowSpinner(false);
-                setShowError(true);
-                setIsValid(false);
-            });
+                });
+
+            const body = getSetupUpsertRequestBody(true, true);
+
+            const response = await updateSetupDataExtensionData(body);
+
+            if (response?.data.status === 200) {
+                prop.updateSetupState({
+                    isS2SCompleted: true,
+                    isConfigCompleted: true,
+                });
+            }
+            setShowSpinner(false);
+        } catch (error) {
+            setShowSpinner(false);
+        }
+    };
+
+    let navigate = useNavigate();
+    const routeChange = () => {
+        let path = "/dashboard";
+        navigate(path);
     };
     const footerClass = classNames({
         "slds-is-expanded": showSuccess,
@@ -154,7 +179,7 @@ function Review(prop: any) {
                             </div>
                             <div className="slds-float_right slds-m-right_x-small">
                                 <form>
-                                    <Button id="button">
+                                    {/* <Button id="button">
                                         <Link
                                             to="/CheckApplicationDetails"
                                             onClick={() =>
@@ -172,7 +197,7 @@ function Review(prop: any) {
                                         >
                                             Back
                                         </Link>
-                                    </Button>
+                                    </Button> */}
                                     &nbsp; &nbsp;
                                     <Button
                                         id="button"
@@ -217,6 +242,7 @@ function Review(prop: any) {
                                                 <a
                                                     target="_blank"
                                                     href={redirectUri}
+                                                    onClick={routeChange}
                                                 >
                                                     {redirectUri}
                                                 </a>

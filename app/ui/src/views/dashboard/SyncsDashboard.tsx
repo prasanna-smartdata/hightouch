@@ -2,11 +2,16 @@ import React, { useEffect, useState } from "react";
 import { refreshSfmcToken } from "../../sfmcClient";
 import htImage from "../../assets/images/htlogoTile.png";
 import {
-    checkDataExtension,
+    checkSetupDataExtension,
+    checKSyncsDataExtension,
+    createSetupDataExtension,
+    createSyncsDataExtension,
+    getSetupDataExtensionData,
     getSyncs,
-    upsertDataExtension,
+    getUserInfo,
+    upsertSyncsDataExtension,
 } from "../../actions/ApiActions";
-import { RequestSyncBody } from "types";
+import { ISetupStatus, RequestSyncBody } from "types";
 import {
     Button,
     DataTable,
@@ -17,6 +22,7 @@ import {
 } from "@salesforce/design-system-react";
 import classNames from "classnames";
 import { withDashboard } from "./withDashboard";
+import { useNavigate } from "react-router-dom";
 const columns = [
     <DataTableColumn key="modelId" label="Model" property="modelId" />,
     <DataTableColumn key="schedule" label="Schedule" property="schedule" />,
@@ -35,55 +41,55 @@ const SyncsDashboardFunction = () => {
         "slds-is-expanded": showSpinner,
         "slds-is-collapsed": !showSpinner,
     });
-    useEffect(() => {
-        refreshSfmcToken().then((resp: any) => {
-            if (resp.status === 200) {
-                //Check the DE is created or not
-                checkDataExtension().then((resp: any) => {
-                    let syncsObj: RequestSyncBody;
-                    if (resp) {
-                        //Get syncs array objects which are of type "sfmc"
-                        getSyncs().then((data: any) => {
-                            setData(data);
-                            setShowSpinner(false);
-                            setCount(data.length);
-                            const payLoad: RequestSyncBody[] = data.map(
-                                (item: any) => {
-                                    return (syncsObj = {
-                                        keys: {
-                                            Model: item.modelId,
-                                        },
-                                        values: {
-                                            Schedule: item.schedule,
-                                            Status: item.status,
-                                            "Last Run": item.lastRunAt,
-                                        },
-                                    });
-                                }
-                            );
 
-                            //Upsert DE
-                            upsertDataExtension(payLoad).then((result: any) => {
-                                console.log(" Inserted data into DE");
+    const [syncsCreated, setSyncsDeCreated] = useState(false);
+    const [setupCreated, setSetupCreated] = useState(false);
+
+
+    //Reading the syncs from hightouch api and pushing into Syncs DE
+    useEffect(() => {
+
+        //Check the DE is created or not
+        checKSyncsDataExtension().then((resp: any) => {
+            let syncsObj: RequestSyncBody;
+            if (resp) {
+                //Get syncs array objects which are of type "sfmc"
+                getSyncs().then((data: any) => {
+                    setData(data);
+                    setShowSpinner(false);
+                    setCount(data.length);
+                    const payLoad: RequestSyncBody[] = data.map(
+                        (item: any) => {
+                            return (syncsObj = {
+                                keys: {
+                                    Model: item.modelId,
+                                },
+                                values: {
+                                    Schedule: item.schedule,
+                                    Status: item.status,
+                                    "Last Run": item.lastRunAt,
+                                },
                             });
-                        });
-                    }
+                        }
+                    );
+
+                    //Upsert DE
+                    upsertSyncsDataExtension(payLoad).then(
+                        (result: any) => {
+                            console.log(" Inserted data into DE");
+                        }
+                    );
                 });
             }
         });
-    }, []);
+
+    }, [syncsCreated]);
 
     return (
         <div className=" slds-m-left_large slds-m-right_large">
             <div className="slds-box   slds-theme_shade slds-m-top_large  slds-text-heading_medium ">
-                <img
-                    src={htImage}
-                    alt="Logo"
-                    height={"40px"}
-                    width={"40px"}
-
-                />
-                &nbsp;<b >Hightouch Syncs Dashboard</b>
+                <img src={htImage} alt="Logo" height={"40px"} width={"40px"} />
+                &nbsp;<b>Hightouch Syncs Dashboard</b>
             </div>
             <div className="slds-m-top_large ">
                 <PageHeader

@@ -1,7 +1,10 @@
 import classNames from "classnames";
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { ISetupStatus } from "types";
+import { getSetupDataExtensionData } from "../actions/ApiActions";
 import { UtilityIcon } from "./icons/UtilityIcon";
+
 import { withNavigation } from "./withNavigation";
 
 const Header = (prop: any) => {

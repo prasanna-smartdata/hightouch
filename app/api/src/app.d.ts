@@ -13,6 +13,7 @@ declare module "app" {
     export interface DataExtensionConfig {
         deName: string;
         deCustomerKey: string;
+        dePrimaryKey?: string;
     }
 
     export interface Connect {

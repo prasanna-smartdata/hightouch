@@ -28,6 +28,7 @@ export function getAppPort(): number {
     return parseInt(port, 10);
 }
 
+//Reading the Application level settings from .env
 export function getAppConfig(): Config {
     return {
         cookieSecret: getEnvVar("COOKIE_SECRET_KEY"),
@@ -48,9 +49,19 @@ export function getAppConfig(): Config {
         ),
     };
 }
-export function getDEConfig(): DataExtensionConfig {
+
+//Reading the Syncs Data Extension name and keys from .env
+export function getSyncDEConfig(): DataExtensionConfig {
     return {
-        deName: getEnvVar("DATA_EXTENSION_NAME"),
-        deCustomerKey: getEnvVar("DATA_EXTENSION_CUSTOMER_KEY"),
+        deName: getEnvVar("SYNC_DATA_EXTENSION_NAME"),
+        deCustomerKey: getEnvVar("SYNC_DATA_EXTENSION_CUSTOMER_KEY"),
+    };
+}
+//Reading the Setup Data Extension name and keys from .env
+export function getSetupDEConfig(): DataExtensionConfig {
+    return {
+        deName: getEnvVar("SETUP_DATA_EXTENSION_NAME"),
+        deCustomerKey: getEnvVar("SETUP_DATA_EXTENSION_CUSTOMER_KEY"),
+
     };
 }

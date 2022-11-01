@@ -24,4 +24,36 @@ declare module "types" {
         }
 
     }
+
+    export interface RequestSetupBody {
+        keys: {
+            "Hightouch PrimaryId": string
+        },
+        values: {
+            "S2S Verify": boolean,
+            "Config Complete": boolean
+
+        }
+
+    }
+
+
+    export interface requestWithAccountId {
+        accountId: string;
+    }
+    export interface UpdateDateExtensionBody {
+        primaryColumn: string;
+        primaryColumnValue: string;
+        updateColumnOne: string;
+        updateColumnOneValue: boolean;
+        updateColumnTwo: string;
+        updateColumnTwoValue: boolean;
+
+    }
+
+    export interface ISetupStatus {
+        primaryKey: string,
+        isS2SCompleted: boolean,
+        isConfigCompleted: boolean
+    }
 }

@@ -7,11 +7,20 @@ import {
     Input,
     SLDSSpinner,
 } from "@salesforce/design-system-react";
-
-import { getUserInfo, verifYServer2ServerOAuth } from "../actions/ApiActions";
+import * as columnNames from "../constants/ColumnConstants";
+import {
+    getUserInfo,
+    updateSetupDataExtensionData,
+    verifYServer2ServerOAuth,
+} from "../actions/ApiActions";
 import { withNavigation } from "../components/withNavigation";
 import { UtilityIcon } from "../components/icons/UtilityIcon";
-import { AuthRequestBody } from "types";
+import {
+    AuthRequestBody,
+    RequestSetupBody,
+    UpdateDateExtensionBody,
+} from "types";
+import { getSetupUpsertRequestBody } from "../actions/Helper";
 
 function AppDetails(prop: any) {
     const [client, setclientid] = useState("");
@@ -32,6 +41,7 @@ function AppDetails(prop: any) {
         setsecret(e.target.value);
     };
 
+    //Fires when user clicks the "Verify My Account"
     const verifyAccount = () => {
         const request: AuthRequestBody = {
             clientId: client,
@@ -58,6 +68,29 @@ function AppDetails(prop: any) {
         });
     };
 
+    //Next button event handler
+    const nextHandler = async (e: any) => {
+        setShowSpinner(true);
+        let isProccessed = false;
+        try {
+            prop.updateState(true, true, true, false);
+
+            const body = getSetupUpsertRequestBody(true, false);
+
+            const response = await updateSetupDataExtensionData(body);
+
+            if (response?.data.status === 200) {
+                prop.updateSetupState({
+                    isS2SCompleted: true,
+                    isConfigCompleted: false,
+                });
+                setShowSpinner(false);
+            }
+            setShowSpinner(false);
+        } catch (error) {
+            setShowSpinner(false);
+        }
+    };
     const footerClass = classNames({
         "slds-is-expanded": showSuccess,
         "slds-is-collapsed": !showSuccess,
@@ -255,15 +288,8 @@ function AppDetails(prop: any) {
                             <div className="slds-float_right slds-m-right_x-small">
                                 <Button id="button" disabled={!isValid}>
                                     <Link
-                                        onClick={() =>
-                                            prop.updateState(
-                                                true,
-                                                true,
-                                                true,
-                                                false
-                                            )
-                                        }
-                                        to="/ReviewSetup"
+                                        onClick={nextHandler}
+                                        to="/setup/ReviewSetup"
                                         state={{
                                             client: client,
                                             secret: secret,
