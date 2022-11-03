@@ -48,7 +48,6 @@ root.render(
             <BrowserRouter>
                 <CookiesProvider>
                     <Routes>
-
                         <Route path="*" element={<DashboardRouter />}></Route>
                         <Route path="setup/*" element={<App />}></Route>
                         <Route path="dashboard" element={<SyncsDashboard />}>

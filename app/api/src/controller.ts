@@ -108,35 +108,42 @@ export const oAuthCallback = async (
     res: Response,
     next: NextFunction
 ) => {
-    const code = await verifyOAuth2Callback(req, next);
-    const tssd = req.query.tssd || appConfig.sfmcDefaultTenantSubdomain;
-    const resp = await sfmcClient.post<AccessTokenResponse>(
-        `https://${tssd}.auth.marketingcloudapis.com/v2/token`,
-        {
-            grant_type: "authorization_code",
-            code,
-            client_id: appConfig.sfmcClientId,
-            client_secret: appConfig.sfmcClientSecret,
-            redirect_uri: `${appConfig.selfDomain}${sfmcOAuthCallbackPath}`,
-        }
-    );
+    try {
+        const code = await verifyOAuth2Callback(req, next);
+        const tssd = req.query.tssd || appConfig.sfmcDefaultTenantSubdomain;
+        const resp = await sfmcClient.post<AccessTokenResponse>(
+            `https://${tssd}.auth.marketingcloudapis.com/v2/token`,
+            {
+                grant_type: "authorization_code",
+                code,
+                client_id: appConfig.sfmcClientId,
+                client_secret: appConfig.sfmcClientSecret,
+                redirect_uri: `${appConfig.selfDomain}${sfmcOAuthCallbackPath}`,
+            }
+        );
 
-    const accessTokenResp = resp.data;
+        const accessTokenResp = resp.data;
 
-    res.cookie(
-        "sfmc_access_token",
-        accessTokenResp.access_token,
-        getCookieOptions(TWENTY_MINS_IN_SECONDS)
-    );
-    res.cookie(
-        "sfmc_refresh_token",
-        accessTokenResp.refresh_token,
-        getCookieOptions(ONE_HOUR_IN_SECONDS)
-    );
+        res.cookie(
+            "sfmc_access_token",
+            accessTokenResp.access_token,
+            getCookieOptions(TWENTY_MINS_IN_SECONDS)
+        );
+        res.cookie(
+            "sfmc_refresh_token",
+            accessTokenResp.refresh_token,
+            getCookieOptions(ONE_HOUR_IN_SECONDS)
+        );
 
-    res.cookie("sfmc_tssd", tssd, getCookieOptions(TWENTY_MINS_IN_SECONDS));
+        res.cookie("sfmc_tssd", tssd, getCookieOptions(TWENTY_MINS_IN_SECONDS));
 
-    res.redirect("/");
+        res.redirect("/");
+    } catch (error) {
+        console.error("Unable to create the access token.", error);
+        next(new Error("invalid_request: Please check the credentials"));
+        return;
+    }
+
 };
 
 
